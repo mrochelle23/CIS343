@@ -1,0 +1,14 @@
+// Entire line comment
+
+var x = 10; // Comment after code
+
+// Another comment
+print x;
+
+// Multiple spaces
+var     y      =       20;
+
+/*
+This is NOT a supported
+block comment.
+*/

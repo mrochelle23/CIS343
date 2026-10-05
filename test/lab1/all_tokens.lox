@@ -1,0 +1,27 @@
+( ) { } , . ;
++ - * /
+! !=
+= ==
+< <=
+> >=
+
+and or
+if else
+while for
+true false
+nil
+var print return
+
+identifier
+_variable
+variable123
+
+123
+456.789
+
+"hello"
+"Hello, Nova!"
+
+// This is a comment.
+var x = 10;
+print x;

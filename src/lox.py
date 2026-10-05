@@ -1,61 +1,62 @@
 import sys
 
-from error import Error
+from scanner import Scanner
 
 
 class Lox:
+    had_error = False
 
-    def run(self, source):
-        # Scanner will be implemented later.
-        print(source)
-        Error.error("Scanner Not Implemented")
+    @staticmethod
+    def main():
+        if len(sys.argv) > 2:
+            print("Usage: python src/lox.py [script]")
+            sys.exit(1)
 
-    def run_file(self, filename):
-        try:
-            with open(filename, "r") as file:
-                source = file.read()
+        if len(sys.argv) == 2:
+            Lox.run_file(sys.argv[1])
+        else:
+            Lox.run_prompt()
 
-            self.run(source)
+    @staticmethod
+    def run_file(path):
+        with open(path, "r") as file:
+            source = file.read()
 
-        except FileNotFoundError:
-            Error.error(f"Could not open file '{filename}'.")
+        Lox.run(source)
 
-    def run_prompt(self):
+        if Lox.had_error:
+            sys.exit(65)
+
+    @staticmethod
+    def run_prompt():
         while True:
             try:
-                line = input("> ")
-
-                self.run(line)
-
-                # Errors in one REPL input should not
-                # prevent the next input from running.
-                Error.had_error = False
-
-            except KeyboardInterrupt:
-                print()
-                break
-
+                line = input("nova> ")
             except EOFError:
                 print()
                 break
+            except KeyboardInterrupt:
+                print()
+                continue
 
+            Lox.run(line)
 
-def main():
-    lox = Lox()
+            Lox.had_error = False
 
-    if len(sys.argv) > 2:
-        print("Usage: python src/lox.py [script]")
-        sys.exit(1)
+    @staticmethod
+    def run(source):
+        scanner = Scanner(source)
+        tokens = scanner.scan_tokens()
 
-    if len(sys.argv) == 2:
-        lox.run_file(sys.argv[1])
-
-        if Error.had_error:
-            sys.exit(1)
-
-    else:
-        lox.run_prompt()
+        for error in scanner.errors:
+            print(error)
+        # --- start AI code ---
+        if scanner.errors:
+            Lox.had_error = True
+        # -- end AI code ---
+        for token in tokens:
+            print(token)
 
 
 if __name__ == "__main__":
-    main()
+    Lox.main()
