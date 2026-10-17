@@ -7,7 +7,6 @@ class ParseError(Exception):
     """Represents a syntax error found while parsing Nova code."""
     pass
 
-
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
