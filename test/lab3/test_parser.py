@@ -1,3 +1,5 @@
+
+# --- start AI code ---
 import unittest
 
 from src.scanner import Scanner
@@ -90,3 +92,4 @@ class TestParser(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+# --- end AI code ---
