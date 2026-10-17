@@ -1,4 +1,10 @@
-from token import Token
+# --- start AI code ---
+try:
+    from .token import Token
+except ImportError:
+    from token import Token
+# --- end AI code ---
+
 
 
 class Scanner:

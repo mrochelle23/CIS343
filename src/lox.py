@@ -1,6 +1,14 @@
+
 import sys
 
-from scanner import Scanner
+try:
+    from scanner import Scanner
+    from parser import Parser
+    from ast_printer import AstPrinter
+except ImportError:
+    from .scanner import Scanner
+    from .parser import Parser
+    from .ast_printer import AstPrinter
 
 
 class Lox:
@@ -19,8 +27,12 @@ class Lox:
 
     @staticmethod
     def run_file(path):
-        with open(path, "r") as file:
-            source = file.read()
+        try:
+            with open(path, "r") as file:
+                source = file.read()
+        except OSError as error:
+            print(f"Could not read file '{path}': {error}")
+            sys.exit(74)
 
         Lox.run(source)
 
@@ -39,24 +51,37 @@ class Lox:
                 print()
                 continue
 
+            Lox.had_error = False
             Lox.run(line)
 
-            Lox.had_error = False
-
+    # --- start AI code ---
     @staticmethod
     def run(source):
+        if not source.strip():
+            return
+    # --- end AI code ---
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
 
-        for error in scanner.errors:
-            print(error)
-        # --- start AI code ---
         if scanner.errors:
+            for error in scanner.errors:
+                print(error)
             Lox.had_error = True
-        # -- end AI code ---
-        for token in tokens:
-            print(token)
+            return
+
+        parser = Parser(tokens)
+        expression = parser.parse()
+
+        if parser.errors:
+            for error in parser.errors:
+                print(error)
+            Lox.had_error = True
+            return
+
+        if expression is not None:
+            print(AstPrinter().print_expr(expression))
 
 
 if __name__ == "__main__":
     Lox.main()
+
