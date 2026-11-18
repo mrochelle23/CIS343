@@ -1,7 +1,9 @@
 try:
     from expr import Binary, Unary, Grouping, Literal
+    from stmt import Expression, Print
 except ImportError:
     from .expr import Binary, Unary, Grouping, Literal
+    from .stmt import Expression, Print
 
 class ParseError(Exception):
     """Represents a syntax error found while parsing Nova code."""
@@ -13,20 +15,36 @@ class Parser:
         self.current = 0
         self.errors = []
 
+    # program -> statement* EOF
     def parse(self):
+        statements = []
+        while not self.is_at_end():
+            stmt = self.statement()
+            if stmt is not None:
+                statements.append(stmt)
+        return statements
+
+    # statement -> printStmt | exprStmt
+    def statement(self):
         try:
-            expression = self.expression()
-
-            if not self.is_at_end():
-                self.error(
-                    self.peek(),
-                    "Unexpected token after expression."
-                )
-
-            return expression if not self.errors else None
-
+            if self.match("PRINT"):
+                return self.print_statement()
+            return self.expression_statement()
         except ParseError:
+            self.synchronize()
             return None
+
+    # printStmt -> "print" expression ";"
+    def print_statement(self):
+        value = self.expression()
+        self.consume("SEMICOLON", "Expected ';' after value.")
+        return Print(value)
+
+    # exprStmt -> expression ";"
+    def expression_statement(self):
+        expr = self.expression()
+        self.consume("SEMICOLON", "Expected ';' after expression.")
+        return Expression(expr)
 
     # expression -> or
     def expression(self):
@@ -181,3 +199,24 @@ class Parser:
             f"[line {token.line}] Syntax error{location}: {message}"
         )
         raise ParseError()
+
+    def synchronize(self):
+        if self.previous().token_type == "SEMICOLON":
+            return
+
+        while not self.is_at_end():
+            if self.peek().token_type == "SEMICOLON":
+                self.advance()
+                return
+
+            if self.peek().token_type in (
+                "VAR",
+                "FOR",
+                "IF",
+                "WHILE",
+                "PRINT",
+                "RETURN",
+            ):
+                return
+
+            self.advance()

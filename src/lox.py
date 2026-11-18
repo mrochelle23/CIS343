@@ -4,14 +4,18 @@ try:
     from scanner import Scanner
     from parser import Parser
     from ast_printer import AstPrinter
+    from interpreter import Interpreter
 except ImportError:
     from .scanner import Scanner
     from .parser import Parser
     from .ast_printer import AstPrinter
+    from .interpreter import Interpreter
 
 
 class Lox:
     had_error = False
+    had_runtime_error = False
+    interpreter = Interpreter()
 
     @staticmethod
     def main():
@@ -37,6 +41,8 @@ class Lox:
 
         if Lox.had_error:
             sys.exit(65)
+        if Lox.had_runtime_error:
+            sys.exit(70)
 
     @staticmethod
     def run_prompt():
@@ -51,6 +57,7 @@ class Lox:
                 continue
 
             Lox.had_error = False
+            Lox.had_runtime_error = False
             Lox.run(line)
 
     # --- start AI code ---
@@ -69,7 +76,7 @@ class Lox:
             return
 
         parser = Parser(tokens)
-        expression = parser.parse()
+        statements = parser.parse()
 
         if parser.errors:
             for error in parser.errors:
@@ -77,10 +84,14 @@ class Lox:
             Lox.had_error = True
             return
 
-        if expression is not None:
-            print(AstPrinter().print_expr(expression))
+        Lox.interpreter.errors = []
+        Lox.interpreter.interpret(statements)
+
+        if Lox.interpreter.errors:
+            for error in Lox.interpreter.errors:
+                print(error)
+            Lox.had_runtime_error = True
 
 
 if __name__ == "__main__":
     Lox.main()
-
